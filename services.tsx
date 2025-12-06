@@ -74,14 +74,16 @@ export const fetchWordPressWithRetry = async (targetUrl: string, options: Reques
     // SOTA FIX: robustly check for Authorization header
     let hasAuthHeader = false;
     if (options.headers) {
-        if (options.headers instanceof Headers) {
-            hasAuthHeader = options.headers.has('Authorization');
-        } else if (Array.isArray(options.headers)) {
-             hasAuthHeader = options.headers.some(pair => pair[0].toLowerCase() === 'authorization');
-        } else {
-             // Plain object
-             const headers = options.headers as Record<string, string>;
-             hasAuthHeader = Object.keys(headers).some(k => k.toLowerCase() === 'authorization');
+        if (typeof options.headers === 'object' && options.headers !== null) {
+            if (options.headers instanceof Headers) {
+                hasAuthHeader = options.headers.has('Authorization');
+            } else if (Array.isArray(options.headers)) {
+                hasAuthHeader = options.headers.some(pair => pair[0].toLowerCase() === 'authorization');
+            } else {
+                // Plain object
+                const headers = options.headers as Record<string, string>;
+                hasAuthHeader = Object.keys(headers).some(k => k.toLowerCase() === 'authorization');
+            }
         }
     }
 

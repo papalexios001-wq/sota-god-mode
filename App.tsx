@@ -366,15 +366,8 @@ const App = () => {
                                 <div className="setup-card">
                                     <h3>API Keys</h3>
                                     <div className="form-group">
-                                        <label>Google Gemini API Key</label>
-                                        <div className="api-key-group">
-                                            <input type="text" readOnly value="Loaded from Environment" disabled />
-                                             <div className="key-status-icon">
-                                                {apiKeyStatus.gemini === 'validating' && <div className="key-status-spinner"></div>}
-                                                {apiKeyStatus.gemini === 'valid' && <span className="success"><CheckIcon /></span>}
-                                                {apiKeyStatus.gemini === 'invalid' && <span className="error"><XIcon /></span>}
-                                            </div>
-                                        </div>
+                                        <label>Google Gemini API Key (For Image Generation & Content)</label>
+                                        <ApiKeyInput provider="gemini" value={apiKeys.geminiApiKey} onChange={handleApiKeyChange} status={apiKeyStatus.gemini} isEditing={editingApiKey === 'gemini'} onEdit={() => setEditingApiKey('gemini')} />
                                     </div>
                                     <div className="form-group">
                                         <label>Serper API Key (Required for SOTA Research)</label>

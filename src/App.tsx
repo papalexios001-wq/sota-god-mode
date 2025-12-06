@@ -55,7 +55,7 @@ const App = () => {
     const [activeView, setActiveView] = useState('setup');
     const [apiKeys, setApiKeys] = useState(() => {
         const saved = localStorage.getItem('apiKeys');
-        const defaults = { openaiApiKey: '', anthropicApiKey: '', openrouterApiKey: '', serperApiKey: '', groqApiKey: '' };
+        const defaults = { geminiApiKey: '', openaiApiKey: '', anthropicApiKey: '', openrouterApiKey: '', serperApiKey: '', groqApiKey: '' };
         try { return saved ? JSON.parse(saved) : defaults; } catch { return defaults; }
     });
     const [apiKeyStatus, setApiKeyStatus] = useState({ gemini: 'idle', openai: 'idle', anthropic: 'idle', openrouter: 'idle', serper: 'idle', groq: 'idle' } as Record<string, 'idle' | 'validating' | 'valid' | 'invalid'>);
@@ -159,18 +159,10 @@ const App = () => {
     useEffect(() => { bootstrapApp(); }, []);
 
     useEffect(() => {
-        (async () => {
-            if (process.env.API_KEY) {
-                try {
-                    setApiKeyStatus(prev => ({...prev, gemini: 'validating' }));
-                    const geminiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                    await callAiWithRetry(() => geminiClient.models.generateContent({ model: AI_MODELS.GEMINI_FLASH, contents: 'test' }));
-                    setApiClients(prev => ({ ...prev, gemini: geminiClient }));
-                    setApiKeyStatus(prev => ({...prev, gemini: 'valid' }));
-                } catch (e) { setApiClients(prev => ({ ...prev, gemini: null })); setApiKeyStatus(prev => ({...prev, gemini: 'invalid' })); }
-            } else { setApiClients(prev => ({ ...prev, gemini: null })); setApiKeyStatus(prev => ({...prev, gemini: 'invalid' })); }
-        })();
-    }, []);
+        if (apiKeys.geminiApiKey) {
+            validateApiKey('gemini', apiKeys.geminiApiKey);
+        }
+    }, [apiKeys.geminiApiKey]);
 
     useEffect(() => {
         // @ts-ignore
@@ -205,6 +197,7 @@ const App = () => {
             let client;
             let isValid = false;
             switch (provider) {
+                case 'gemini': client = new GoogleGenAI({ apiKey: key }); await callAiWithRetry(() => client.models.generateContent({ model: AI_MODELS.GEMINI_FLASH, contents: 'test' })); isValid = true; break;
                 case 'openai': client = new OpenAI({ apiKey: key, dangerouslyAllowBrowser: true }); await callAiWithRetry(() => client.models.list()); isValid = true; break;
                 case 'anthropic': client = new Anthropic({ apiKey: key }); await callAiWithRetry(() => client.messages.create({ model: AI_MODELS.ANTHROPIC_HAIKU, max_tokens: 1, messages: [{ role: "user", content: "test" }], })); isValid = true; break;
                 case 'openrouter': client = new OpenAI({ baseURL: "https://openrouter.ai/api/v1", apiKey: key, dangerouslyAllowBrowser: true, defaultHeaders: { 'HTTP-Referer': window.location.href, 'X-Title': 'WP Content Optimizer Pro', } }); await callAiWithRetry(() => client.chat.completions.create({ model: 'google/gemini-2.5-flash', messages: [{ role: "user", content: "test" }], max_tokens: 1 })); isValid = true; break;

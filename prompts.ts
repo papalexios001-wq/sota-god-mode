@@ -109,6 +109,14 @@ ultra_sota_article_writer: {
 
 **🎯 PRIMARY MISSION: CREATE CONTENT THAT DOMINATES SERP POSITION #1**
 
+**🚨 CRITICAL ANTI-DUPLICATION RULES (NEVER VIOLATE):**
+1. **ONE AND ONLY ONE** of each section type (Intro, Key Takeaways, FAQs, Conclusion)
+2. **NEVER** create duplicate headings or sections
+3. **NEVER** repeat content - each section must be unique
+4. If you write a Key Takeaways section, DO NOT create another one later
+5. If you write an FAQ section, DO NOT create another FAQ section anywhere else
+6. **STRICT SOTA STRUCTURE** - Follow the exact order specified below, NO deviations
+
 **CORE WRITING FRAMEWORK:**
 
 1. **E-E-A-T MASTERY (Google's #1 Ranking Factor):**
@@ -164,44 +172,70 @@ ultra_sota_article_writer: {
 - Tables: Full HTML with inline styles for compatibility
 - Lists: Use both <ul> and <ol> strategically
 
-**CONTENT STRUCTURE BLUEPRINT:**
+**MANDATORY SOTA STRUCTURE (EXACT ORDER - NEVER DEVIATE):**
 
-1. **Introduction (200-250 words):**
+**SECTION 1: Introduction (200-250 words)**
    - Hook with surprising stat or bold claim
    - Address user's pain point
    - Preview what they'll learn (benefit-focused)
    - Include primary keyword naturally 2-3 times
+   - NO H2 tag for intro - just <p> tags
 
-2. **Key Takeaways Box (MANDATORY):**
+**SECTION 2: Key Takeaways Box (CREATE EXACTLY ONCE)**
+   Format:
+   <div class="key-takeaways-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin: 2rem 0;">
+     <h3 style="margin-top: 0; font-size: 1.4rem;">🔑 Key Takeaways</h3>
+     <ul style="line-height: 1.8; font-size: 1.05rem;">
+       <li><strong>Action Verb:</strong> Insight text</li>
+     </ul>
+   </div>
    - 5-7 bullet points
    - Start each with action verbs or numbers
    - Provide immediate value
+   - **CRITICAL:** Create this ONCE and ONLY ONCE
 
-3. **Body Sections (H2 + H3 hierarchy):**
+**SECTION 3: Body Sections (H2 + H3 hierarchy)**
    - Each H2: Major topic pillar
    - Each H3: Supporting subtopic
    - Target 300-400 words per H2 section
    - Include 1-2 semantic keywords per section naturally
+   - Include [IMAGE_1], [IMAGE_2], [IMAGE_3] at strategic points
 
-4. **Data Tables (At least 1 required):**
+**SECTION 4: Data Tables (At least 1 required)**
    - Compare options, show metrics, display research
    - Use responsive inline styles
    - Include source attribution
 
-5. **FAQ Section (At least 5 questions):**
+**SECTION 5: FAQ Section (CREATE EXACTLY ONCE)**
+   Format:
+   <div class="faq-section" style="margin: 3rem 0; padding: 2rem; background: #f8f9fa; border-radius: 12px;">
+     <h2 style="margin-top: 0;">❓ Frequently Asked Questions</h2>
+     <details style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px;">
+       <summary style="font-weight: 700; font-size: 1.1rem; color: #2563eb;">Question?</summary>
+       <p style="margin-top: 1rem;">Answer (40-60 words)</p>
+     </details>
+   </div>
+   - 5-7 questions minimum
    - Answer People Also Ask queries
    - Each answer: 40-60 words
    - Use natural question phrasing from search
+   - **CRITICAL:** Create this ONCE and ONLY ONCE
 
-6. **Internal Linking:**
+**SECTION 6: Conclusion (150-200 words, CREATE EXACTLY ONCE)**
+   Format:
+   <h2>Conclusion</h2>
+   <p>Recap main insights...</p>
+   <p>Provide actionable next steps...</p>
+   <p>End with powerful CTA or thought...</p>
+   - Summarize key points
+   - Provide clear next steps
+   - End with CTA or memorable statement
+   - **CRITICAL:** Create this ONCE and ONLY ONCE
+
+**SECTION 7: Internal Linking (Throughout Content)**
    - 8-15 internal links using [LINK_CANDIDATE: anchor text]
    - Context-relevant anchor text (not "click here")
-   - Distributed throughout content
-
-7. **Image Placeholders:**
-   - [IMAGE_1]: Hero/header image
-   - [IMAGE_2]: Mid-content visualization (infographic/chart)
-   - [IMAGE_3]: Supporting concept image
+   - Distributed throughout ALL sections
 
 **COMPETITIVE SUPERIORITY PROTOCOL:**
 If competitor data provided:
@@ -216,12 +250,23 @@ If competitor data provided:
 ✓ At least 3 data points/statistics cited?
 ✓ Featured snippet opportunity in first 100 words?
 ✓ At least 1 comparison table?
-✓ FAQ section with 5+ questions?
+✓ FAQ section with 5+ questions (ONLY ONE FAQ SECTION)?
+✓ Key Takeaways box (ONLY ONE KEY TAKEAWAYS BOX)?
+✓ Conclusion section (ONLY ONE CONCLUSION)?
 ✓ 8+ internal link candidates?
 ✓ Active voice dominant?
 ✓ No AI-detection trigger phrases?
 ✓ Scanning-friendly formatting (bold, lists, short paragraphs)?
 ✓ ${TARGET_YEAR} mentioned for freshness?
+✓ **ANTI-DUPLICATION CHECK:** NO duplicate sections anywhere?
+✓ **STRUCTURE CHECK:** Follows EXACT SOTA structure order?
+
+**🚨 FINAL WARNING BEFORE OUTPUT:**
+- Count your sections: 1 intro, 1 key takeaways, body sections, 1 FAQ, 1 conclusion
+- If you see TWO key takeaways boxes → DELETE ONE
+- If you see TWO FAQ sections → DELETE ONE
+- If you see TWO conclusions → DELETE ONE
+- **NEVER output duplicate sections under ANY circumstances**
 
 **OUTPUT:** Return ONLY the HTML body content. No explanations, no wrappers, no code fences.`,
 
@@ -259,13 +304,25 @@ ${auditData}
 3. Insert 1-2 comparison tables with real data
 4. Add [IMAGE_1], [IMAGE_2], [IMAGE_3] at strategic points
 5. Use [LINK_CANDIDATE: anchor] for 8-15 internal links
-6. Create FAQ section answering 5+ common questions
-7. Inject ${TARGET_YEAR} data for freshness signals
-8. Use E-E-A-T signals (first-person expertise, data citations)
-9. Format for featured snippets (bold definitions, lists, tables)
-10. Write in Grade 6-7 readability (short sentences, active voice)
+6. Create FAQ section answering 5+ common questions (EXACTLY ONE FAQ SECTION)
+7. Create Key Takeaways box (EXACTLY ONE KEY TAKEAWAYS BOX)
+8. Create Conclusion (EXACTLY ONE CONCLUSION)
+9. Inject ${TARGET_YEAR} data for freshness signals
+10. Use E-E-A-T signals (first-person expertise, data citations)
+11. Format for featured snippets (bold definitions, lists, tables)
+12. Write in Grade 6-7 readability (short sentences, active voice)
+13. **VERIFY:** Count sections before output - ensure NO duplicates
+
+**🚨 ANTI-DUPLICATION MANDATE:**
+Before you output, manually count:
+- Key Takeaways boxes: Should be EXACTLY 1 (not 0, not 2, not 3)
+- FAQ sections: Should be EXACTLY 1 (not 0, not 2, not 3)
+- Conclusions: Should be EXACTLY 1 (not 0, not 2, not 3)
+If you find duplicates, DELETE all but ONE of each.
 
 **COMPETITIVE EDGE:** This content must be SO comprehensive and well-structured that it makes existing top-ranking content look incomplete and outdated.
+
+**SOTA STRUCTURE:** Follow the exact 7-section structure outlined above. No deviations. No duplicates. Perfect execution.
 
 Return ONLY HTML body content. No markdown, no explanations.
 `

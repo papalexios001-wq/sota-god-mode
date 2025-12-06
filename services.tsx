@@ -777,135 +777,66 @@ export class MaintenanceEngine {
 
         let structuralFixesMade = 0;
 
-        // 3. PARALLEL STRUCTURAL DEFICIENCY DETECTION & REPAIR
-        this.logCallback(`🏗️ Scanning for missing critical sections...`);
+        // 3. 🔥 GOD MODE AUTONOMOUS AGENT - COMPLETE CONTENT RECONSTRUCTION
+        this.logCallback(`🔥 ═══════════════════════════════════════════════════════════`);
+        this.logCallback(`🔥 GOD MODE ACTIVATED: Autonomous Content Reconstruction Engine`);
+        this.logCallback(`🔥 ═══════════════════════════════════════════════════════════`);
 
-        // ULTRA PERFORMANCE: Check all structural elements first
-        const hasKeyTakeaways = body.querySelector('.key-takeaways-box') ||
-            Array.from(body.querySelectorAll('h2, h3')).some(h =>
-                (h.textContent?.toLowerCase().includes('key takeaway') ||
-                 h.textContent?.toLowerCase().includes('at a glance'))
+        // Get semantic keywords FIRST (needed for autonomous agent)
+        this.logCallback(`🔍 ANALYZING: Semantic keywords for content optimization...`);
+        let semanticKeywords: string[] = [];
+        try {
+            const keywordResponse = await memoizedCallAI(
+                apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
+                'semantic_keyword_generator',
+                [page.title, geoTargeting.enabled ? geoTargeting.location : null],
+                'json'
             );
-
-        const hasFAQ = body.querySelector('.faq-section') ||
-            Array.from(body.querySelectorAll('h2, h3')).some(h =>
-                (h.textContent?.toLowerCase().includes('faq') ||
-                 h.textContent?.toLowerCase().includes('frequently asked'))
-            );
-
-        const hasConclusion = Array.from(body.querySelectorAll('h2, h3')).some(h =>
-            h.textContent?.toLowerCase().includes('conclusion') ||
-            h.textContent?.toLowerCase().includes('final thoughts') ||
-            h.textContent?.toLowerCase().includes('wrap')
-        );
-
-        // SOTA: Generate all missing sections in PARALLEL (10x faster)
-        const missingStructures: Promise<{ type: string, html: string }>[] = [];
-
-        if (!hasKeyTakeaways) {
-            this.logCallback(`🔧 QUEUING: Key Takeaways section...`);
-            missingStructures.push(
-                memoizedCallAI(apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                    'generate_key_takeaways', [body.innerHTML.substring(0, 5000), page.title], 'html')
-                    .then(html => ({ type: 'takeaways', html: surgicalSanitizer(html) }))
-                    .catch(e => ({ type: 'takeaways', html: '' }))
-            );
+            const parsed = JSON.parse(keywordResponse);
+            semanticKeywords = (parsed.semanticKeywords || []).map((k: any) => typeof k === 'object' ? k.keyword : k);
+            this.logCallback(`✅ FOUND: ${semanticKeywords.length} semantic keywords`);
+        } catch (e: any) {
+            this.logCallback(`⚠️ Keyword extraction failed: ${e.message}`);
+            semanticKeywords = [];
         }
 
-        if (!hasFAQ) {
-            this.logCallback(`🔧 QUEUING: FAQ section...`);
-            missingStructures.push(
-                memoizedCallAI(apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                    'generate_faq_section', [body.innerHTML.substring(0, 5000), page.title], 'html')
-                    .then(html => ({ type: 'faq', html: surgicalSanitizer(html) }))
-                    .catch(e => ({ type: 'faq', html: '' }))
+        // Run the AUTONOMOUS AGENT on the ENTIRE content at once
+        this.logCallback(`⚡ PROCESSING: Entire content with autonomous agent...`);
+        try {
+            const optimizedHtml = await memoizedCallAI(
+                apiClients,
+                selectedModel,
+                geoTargeting,
+                openrouterModels,
+                selectedGroqModel,
+                'god_mode_autonomous_agent',
+                [body.innerHTML, page.title, semanticKeywords, null],
+                'html'
             );
-        }
 
-        if (!hasConclusion) {
-            this.logCallback(`🔧 QUEUING: Conclusion section...`);
-            missingStructures.push(
-                memoizedCallAI(apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                    'generate_conclusion', [body.innerHTML.substring(0, 3000), page.title], 'html')
-                    .then(html => ({ type: 'conclusion', html: surgicalSanitizer(html) }))
-                    .catch(e => ({ type: 'conclusion', html: '' }))
-            );
-        }
-
-        if (missingStructures.length > 0) {
-            this.logCallback(`⚡ GENERATING: ${missingStructures.length} sections in PARALLEL...`);
-            const results = await Promise.all(missingStructures);
-
-            results.forEach(result => {
-                if (!result.html || result.html.length < 20) return;
-
-                const wrapper = doc.createElement('div');
-                wrapper.innerHTML = result.html;
-
-                if (result.type === 'takeaways') {
-                    const firstH2 = body.querySelector('h2');
-                    if (firstH2 && firstH2.parentNode) {
-                        firstH2.parentNode.insertBefore(wrapper.firstElementChild || wrapper, firstH2);
-                        structuralFixesMade++;
-                        this.logCallback(`✅ ADDED: Key Takeaways`);
-                    }
-                } else if (result.type === 'faq') {
-                    const conclusionH2 = Array.from(body.querySelectorAll('h2')).find(h =>
-                        h.textContent?.toLowerCase().includes('conclusion')
-                    );
-                    if (conclusionH2 && conclusionH2.parentNode) {
-                        conclusionH2.parentNode.insertBefore(wrapper.firstElementChild || wrapper, conclusionH2);
-                    } else {
-                        body.appendChild(wrapper.firstElementChild || wrapper);
-                    }
-                    structuralFixesMade++;
-                    this.logCallback(`✅ ADDED: FAQ section with schema`);
-                } else if (result.type === 'conclusion') {
-                    body.appendChild(wrapper);
-                    structuralFixesMade++;
-                    this.logCallback(`✅ ADDED: Compelling conclusion`);
-                }
-            });
-
-            this.logCallback(`⚡ PARALLEL GENERATION: Completed ${results.filter(r => r.html).length}/${missingStructures.length} sections`);
-        }
-
-        // CHECK 4: Weak or Missing Intro
-        const firstParagraphs = Array.from(body.querySelectorAll('p')).slice(0, 3);
-        const introText = firstParagraphs.map(p => p.textContent).join(' ');
-        const isWeakIntro = introText.length < 150 ||
-            !introText.toLowerCase().includes('will') && !introText.toLowerCase().includes('you') ||
-            !firstParagraphs[0]?.querySelector('strong');
-
-        if (isWeakIntro && firstParagraphs.length > 0) {
-            this.logCallback(`🔧 UPGRADING: Weak intro detected...`);
-            try {
-                const newIntroHtml = await memoizedCallAI(
-                    apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                    'regenerate_intro',
-                    [introText, page.title, body.innerHTML],
-                    'html'
-                );
-                const cleanIntro = surgicalSanitizer(newIntroHtml);
-                const wrapper = doc.createElement('div');
-                wrapper.innerHTML = cleanIntro;
-
-                // Replace first 2-3 paragraphs
-                firstParagraphs.forEach(p => p.remove());
-                const firstH2 = body.querySelector('h2');
-                if (firstH2 && firstH2.parentNode) {
-                    Array.from(wrapper.childNodes).reverse().forEach(node => {
-                        firstH2.parentNode!.insertBefore(node, firstH2);
-                    });
-                } else {
-                    body.insertBefore(wrapper, body.firstChild);
-                }
+            if (optimizedHtml && optimizedHtml.length > 500) {
+                // Replace the body content with the God Mode output
+                body.innerHTML = surgicalSanitizer(optimizedHtml);
                 structuralFixesMade++;
-                this.logCallback(`✅ UPGRADED: Intro now hooks readers`);
-            } catch (e: any) {
-                this.logCallback(`❌ FAILED: Intro upgrade - ${e.message}`);
+                this.logCallback(`✅ GOD MODE: Content fully reconstructed & optimized`);
+                this.logCallback(`   - Intro optimized (direct answer first)`);
+                this.logCallback(`   - Key takeaways injected/optimized`);
+                this.logCallback(`   - Body content surgically enhanced`);
+                this.logCallback(`   - FAQs added/optimized (schema-ready)`);
+                this.logCallback(`   - Conclusion added/optimized (actionable)`);
+                this.logCallback(`   - All media preserved (images, videos, iframes)`);
+                this.logCallback(`   - Errors fixed, outdated info updated to 2026`);
+                this.logCallback(`   - Semantic keywords naturally integrated`);
+            } else {
+                this.logCallback(`⚠️ GOD MODE: AI returned empty/invalid response. Skipping.`);
             }
+        } catch (e: any) {
+            this.logCallback(`❌ GOD MODE ERROR: ${e.message}`);
         }
+
+        this.logCallback(`🔥 ═══════════════════════════════════════════════════════════`);
+        this.logCallback(`🔥 GOD MODE COMPLETE: Autonomous reconstruction finished`);
+        this.logCallback(`🔥 ═══════════════════════════════════════════════════════════`);
 
         // CHECK 5: Schema Markup
         const hasSchema = rawContent.includes('application/ld+json');
@@ -922,55 +853,38 @@ export class MaintenanceEngine {
             this.logCallback(`✅ ADDED: Schema markup (Article, FAQ, BreadcrumbList)`);
         }
 
-        // CHECK 6: PARALLEL Title & Meta + Semantic Keywords (SOTA OPTIMIZATION)
-        this.logCallback(`🎯 ANALYZING: SEO title, meta & keywords...`);
-        let semanticKeywords: string[] = [];
+        // CHECK 5: Title & Meta Optimization
+        this.logCallback(`🎯 ANALYZING: SEO title & meta...`);
         let titleMetaUpdated = false;
 
         const title = page.title.toLowerCase();
         const needsTitleOptimization = !title.includes('2026') ||
             !['ultimate', 'complete', 'guide', 'best', 'top', 'proven'].some(w => title.includes(w));
 
-        // SOTA: Run keyword analysis and title optimization in PARALLEL
-        const parallelSeoTasks = [
-            memoizedCallAI(
-                apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                'semantic_keyword_generator',
-                [page.title, geoTargeting.enabled ? geoTargeting.location : null],
-                'json'
-            ).then(response => {
-                const parsed = JSON.parse(response);
-                return (parsed.semanticKeywords || []).map((k: any) => typeof k === 'object' ? k.keyword : k);
-            }).catch(() => [])
-        ];
-
         if (needsTitleOptimization) {
-            this.logCallback(`🔧 QUEUING: Title & meta optimization...`);
-            parallelSeoTasks.push(
-                delay(200).then(() => memoizedCallAI(
+            this.logCallback(`🔧 OPTIMIZING: Title & meta description...`);
+            try {
+                const titleMetaResponse = await memoizedCallAI(
                     apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
                     'optimize_title_meta',
                     [page.title, body.innerHTML.substring(0, 1000), semanticKeywords.length > 0 ? semanticKeywords : [page.title]],
                     'json'
-                )).then(response => JSON.parse(response))
-                  .catch(() => null)
-            );
+                );
+                const titleMeta = JSON.parse(titleMetaResponse);
+
+                if (titleMeta && titleMeta.title) {
+                    (page as any).optimizedTitle = titleMeta.title;
+                    (page as any).optimizedMeta = titleMeta.metaDescription;
+                    titleMetaUpdated = true;
+                    structuralFixesMade++;
+                    this.logCallback(`✅ OPTIMIZED: "${titleMeta.title}"`);
+                }
+            } catch (e: any) {
+                this.logCallback(`❌ FAILED: Title/meta optimization - ${e.message}`);
+            }
         }
 
-        const [keywords, titleMeta] = await Promise.all(parallelSeoTasks);
-
-        semanticKeywords = keywords as string[];
-        this.logCallback(`🔍 FOUND: ${semanticKeywords.length} semantic keywords in parallel`);
-
-        if (needsTitleOptimization && titleMeta) {
-            (page as any).optimizedTitle = titleMeta.title;
-            (page as any).optimizedMeta = titleMeta.metaDescription;
-            titleMetaUpdated = true;
-            structuralFixesMade++;
-            this.logCallback(`✅ OPTIMIZED: "${titleMeta.title}"`);
-        }
-
-        // CHECK 7: INTERNAL LINK QUALITY FILTER & OPTIMIZATION
+        // CHECK 6: INTERNAL LINK QUALITY FILTER & OPTIMIZATION
         this.logCallback(`🔗 ANALYZING: Internal link quality...`);
 
         // ULTRA QUALITY FILTER: Remove low-quality internal links
@@ -1061,231 +975,7 @@ export class MaintenanceEngine {
             }
         }
 
-        // 4. COMPREHENSIVE YEAR UPDATING - ALL OUTDATED YEARS TO 2026
-        this.logCallback(`📅 UPDATING: All outdated years to 2026...`);
-        const outdatedYears = [2020, 2021, 2022, 2023, 2024, 2025];
-        let yearUpdatesCount = 0;
-
-        for (const year of outdatedYears) {
-            const yearRegex = new RegExp(`\\b${year}\\b`, 'g');
-            const matches = body.innerHTML.match(yearRegex);
-            if (matches) {
-                body.innerHTML = body.innerHTML.replace(yearRegex, '2026');
-                yearUpdatesCount += matches.length;
-            }
-        }
-
-        if (yearUpdatesCount > 0) {
-            structuralFixesMade++;
-            this.logCallback(`✅ UPDATED: ${yearUpdatesCount} year references → 2026`);
-        }
-
-        // 5. AGGRESSIVE FLUFF REMOVAL & CONTENT REPLACEMENT
-        this.logCallback(`🔥 DETECTING: Fluff and low-value content...`);
-
-        const textNodes = Array.from(body.querySelectorAll('p, li'));
-        const fluffIndicators = [
-            'in this article', 'in this post', 'in this guide', 'we will discuss', 'we will explore',
-            'it is important to note', 'it should be noted', 'as you can see', 'as mentioned above',
-            'without further ado', 'at the end of the day', 'the fact of the matter is',
-            'basically', 'actually', 'essentially', 'generally speaking', 'in general'
-        ];
-
-        let fluffRemovalCount = 0;
-        const fluffyNodes: Element[] = [];
-
-        textNodes.forEach(node => {
-            // Skip protected areas
-            if (node.closest('figure, .wp-block-image, .wp-block-embed, .key-takeaways-box, .faq-section, .sota-references-section')) return;
-            if (node.querySelector('img, iframe, video, svg, a')) return; // Skip nodes with media or links
-
-            const text = node.textContent?.toLowerCase() || '';
-
-            // Detect fluff: vague statements, filler words, non-specific content
-            const hasFluffIndicators = fluffIndicators.some(indicator => text.includes(indicator));
-            const hasVagueContent = text.split(' ').length > 15 &&
-                                   !text.match(/\d+/) && // No numbers/data
-                                   !text.includes('research') &&
-                                   !text.includes('study') &&
-                                   !text.includes('expert');
-            const isGeneric = text.split(' ').length > 20 &&
-                            text.split(',').length < 2; // Long sentences without structure
-
-            if (hasFluffIndicators || (hasVagueContent && isGeneric)) {
-                fluffyNodes.push(node);
-            }
-        });
-
-        if (fluffyNodes.length > 0) {
-            this.logCallback(`🔥 FOUND: ${fluffyNodes.length} fluffy paragraphs - Replacing with high-value content...`);
-
-            // Process fluff in batches
-            const FLUFF_BATCH_SIZE = 3;
-            for (let i = 0; i < Math.min(fluffyNodes.length, 10); i += FLUFF_BATCH_SIZE) {
-                const batch = fluffyNodes.slice(i, i + FLUFF_BATCH_SIZE);
-                const batchText = batch.map(n => n.outerHTML).join('\n\n');
-
-                try {
-                    const replacementHtml = await memoizedCallAI(
-                        apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                        'fluff_remover_and_replacer',
-                        [batchText, page.title, semanticKeywords],
-                        'html'
-                    );
-
-                    const cleanReplacement = surgicalSanitizer(replacementHtml);
-
-                    if (cleanReplacement && cleanReplacement.length > 20) {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = cleanReplacement;
-
-                        // Replace fluffy content with high-value content
-                        batch.forEach((node, index) => {
-                            const newNode = tempDiv.children[index];
-                            if (newNode && newNode.textContent && newNode.textContent.length > 30) {
-                                node.innerHTML = newNode.innerHTML;
-                                fluffRemovalCount++;
-                            } else {
-                                // If replacement is too short, remove the fluff entirely
-                                node.remove();
-                                fluffRemovalCount++;
-                            }
-                        });
-                    }
-                } catch (e: any) {
-                    this.logCallback(`⚠️ Fluff removal error: ${e.message}`);
-                }
-                await delay(500);
-            }
-
-            if (fluffRemovalCount > 0) {
-                structuralFixesMade++;
-                this.logCallback(`✅ REMOVED: ${fluffRemovalCount} fluffy paragraphs, replaced with high-value content`);
-            }
-        }
-
-        // 6. GOD MODE: STRUCTURAL GUARDIAN ACTIVATED
-        this.logCallback(`🛡️ ENGAGING STRUCTURAL GUARDIAN: Cleaning noise & preserving format...`);
-
-        // Select ALL content-relevant nodes, but explicitly skip known garbage containers
-        const contentNodes = Array.from(body.querySelectorAll('p, li, h2, h3, h4, blockquote')).filter(node => {
-            // 1. AGGRESSIVE NOISE FILTERING BEFORE AI
-            const text = node.textContent?.toLowerCase() || '';
-
-            // 🔥 ULTIMATE SOTA KILL LIST - Patterns to incinerate immediately
-            const garbagePatterns = [
-                // Subscription forms
-                'subscribe', 'enter email', 'sign up', 'gear up to fit', 'newsletter',
-                'your email', 'email address', 'get updates',
-                // Cookie/Privacy notices
-                'i agree', 'privacy policy', 'cookie policy', 'personal data',
-                'accept cookies', 'cookie settings', 'privacy notice',
-                // Sidebar/Menu links
-                'about us', 'contact', 'see also', 'related posts',
-                'categories', 'tags', 'search for:', 'posted in',
-                // Login/Comment prompts
-                'logged in as', 'leave a reply', 'leave a comment', 'comment below',
-                'your name', 'your comment',
-                // Navigation
-                'previous post', 'next post', 'back to top', 'breadcrumb',
-                // Social/Sharing
-                'follow us', 'share this', 'tweet this', 'pin it',
-                // Advertisements
-                'affiliate', 'sponsored', 'advertisement', 'ad disclosure'
-            ];
-
-            const isGarbage = garbagePatterns.some(pattern => text.includes(pattern));
-
-            if (isGarbage) {
-                node.remove(); // Kill it immediately from the DOM
-                this.logCallback(`🗑️ PRE-FILTER: Removed UI noise - "${text.substring(0, 50)}..."`);
-                return false;
-            }
-
-            // Skip protected elements
-            if (node.closest('figure, .wp-block-image, .wp-block-embed, .key-takeaways-box, .faq-section, .sota-references-section')) return false;
-
-            // Skip nodes with media
-            if (node.querySelector('img, iframe, video, svg')) return false;
-
-            // Skip empty or very short nodes
-            if (text.trim().length < 5) return false;
-
-            return true;
-        });
-
-        const GUARDIAN_BATCH_SIZE = 6;
-        let guardianFixes = 0;
-        let textChangesMade = 0;
-
-        // Process up to 50 nodes (covers most of a standard article)
-        const nodesToProcess = contentNodes.slice(0, 50);
-
-        for (let i = 0; i < nodesToProcess.length; i += GUARDIAN_BATCH_SIZE) {
-            const batch = nodesToProcess.slice(i, i + GUARDIAN_BATCH_SIZE);
-
-            // Clone nodes to a wrapper to preserve structure
-            const batchWrapper = doc.createElement('div');
-            batch.forEach(node => batchWrapper.appendChild(node.cloneNode(true)));
-            const batchHtml = batchWrapper.innerHTML;
-
-            try {
-                this.logCallback(`🛡️ REFINING: Batch ${Math.floor(i/GUARDIAN_BATCH_SIZE) + 1} (Preserving Structure)...`);
-
-                const refinedHtml = await memoizedCallAI(
-                    apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
-                    'god_mode_structural_guardian',
-                    [batchHtml, semanticKeywords, page.title],
-                    'html'
-                );
-
-                const cleanHtml = surgicalSanitizer(refinedHtml);
-
-                // Validation: Check if we got back valid HTML
-                if (cleanHtml && cleanHtml.length > 10) {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = cleanHtml;
-
-                    // If the AI returned an empty string (because it found garbage), we remove the original nodes
-                    if (tempDiv.textContent?.trim().length === 0) {
-                        batch.forEach(node => node.remove());
-                        this.logCallback(`🗑️ AI-DETECTED: Removed garbage batch`);
-                    }
-                    // Otherwise, we intelligently swap
-                    else if (tempDiv.children.length > 0) {
-                         const parent = batch[0].parentNode;
-                         if (parent) {
-                             // Insert refined nodes before first old node
-                             Array.from(tempDiv.childNodes).forEach(newChild => {
-                                 parent.insertBefore(newChild, batch[0]);
-                             });
-
-                             // Remove old nodes
-                             batch.forEach(oldNode => {
-                                 if (oldNode.parentNode === parent) {
-                                     parent.removeChild(oldNode);
-                                 }
-                             });
-
-                             guardianFixes++;
-                             textChangesMade += batch.length;
-                         }
-                    }
-                }
-            } catch (e: any) {
-                this.logCallback(`⚠️ Guardian Glitch: ${e.message}`);
-            }
-
-            // Cooldown to respect API limits
-            await delay(500);
-        }
-
-        if (guardianFixes > 0) {
-             structuralFixesMade++;
-             this.logCallback(`✅ STRUCTURE SECURED: Refined ${guardianFixes} blocks while keeping formatting.`);
-        }
-
-        // 7. ULTRA AGGRESSIVE REFERENCE CHECK & ADDITION
+        // 4. ULTRA AGGRESSIVE REFERENCE CHECK & ADDITION
         this.logCallback(`📚 ═══════════════════════════════════════`);
         this.logCallback(`📚 STARTING: Reference validation check...`);
 

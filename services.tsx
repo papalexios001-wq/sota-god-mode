@@ -712,16 +712,26 @@ export class MaintenanceEngine {
         if (excludedUrls.length > 0 || excludedCategories.length > 0) {
             const initialCount = candidates.length;
             candidates = candidates.filter(p => {
+                if (!p.url && !p.id) {
+                    this.logCallback(`⚠️ SKIP: Page missing URL and ID (title: "${p.title || 'Unknown'}")`);
+                    return false;
+                }
+
+                const pageUrl = p.url || p.id || '';
+
                 for (const excludedUrl of excludedUrls) {
-                    if (p.url === excludedUrl || p.url.startsWith(excludedUrl)) {
-                        this.logCallback(`🚫 Excluded (URL Match): ${p.title} (matches: ${excludedUrl})`);
+                    if (!excludedUrl) continue;
+                    if (pageUrl === excludedUrl || pageUrl.startsWith(excludedUrl)) {
+                        this.logCallback(`🚫 Excluded (URL Match): ${p.title || 'Unknown'} (matches: ${excludedUrl})`);
                         return false;
                     }
                 }
 
                 for (const excludedPattern of excludedCategories) {
-                    if (p.url.startsWith(excludedPattern)) {
-                        this.logCallback(`🚫 Excluded (Category URL Match): ${p.title} (matches: ${excludedPattern})`);
+                    if (!excludedPattern) continue;
+
+                    if (pageUrl.startsWith(excludedPattern)) {
+                        this.logCallback(`🚫 Excluded (Category URL Match): ${p.title || 'Unknown'} (matches: ${excludedPattern})`);
                         return false;
                     }
 
@@ -732,7 +742,7 @@ export class MaintenanceEngine {
                             return catSlug === excludedPattern || excludedPattern.includes(catSlug);
                         });
                         if (hasExcludedCategory) {
-                            this.logCallback(`🚫 Excluded (Category Slug Match): ${p.title} (matches: ${excludedPattern})`);
+                            this.logCallback(`🚫 Excluded (Category Slug Match): ${p.title || 'Unknown'} (matches: ${excludedPattern})`);
                             return false;
                         }
                     }
@@ -809,14 +819,25 @@ export class MaintenanceEngine {
 
     // 🔥 ULTRA GOD MODE: COMPLETE STRUCTURAL SURGEON
     private async optimizeDOMSurgically(page: SitemapPage, context: GenerationContext) {
+        if (!page || (!page.id && !page.url)) {
+            this.logCallback(`❌ CRITICAL: Invalid page object (missing ID/URL)`);
+            return;
+        }
+
+        if (!page.title) {
+            this.logCallback(`⚠️ WARNING: Page has no title (ID: ${page.id || page.url || 'Unknown'})`);
+        }
+
         const { wpConfig, apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel, serperApiKey } = context;
-        this.logCallback(`🎯 TARGET: ${page.title}`);
-        this.logCallback(`📊 AGE: ${page.daysOld || '??'} days | URL: ${page.id}`);
+        const pageIdentifier = page.id || page.url || '';
+        const safeTitle = page.title || 'Untitled';
+        this.logCallback(`🎯 TARGET: ${safeTitle}`);
+        this.logCallback(`📊 AGE: ${page.daysOld || '??'} days | URL: ${pageIdentifier}`);
 
         let rawContent = await this.fetchRawContent(page, wpConfig);
         if (!rawContent || rawContent.length < 300) {
             this.logCallback(`❌ SKIP: Content too short (${rawContent?.length || 0} chars)`);
-            localStorage.setItem(`sota_last_proc_${page.id}`, Date.now().toString());
+            localStorage.setItem(`sota_last_proc_${pageIdentifier}`, Date.now().toString());
             return;
         }
 
@@ -826,14 +847,14 @@ export class MaintenanceEngine {
 
         if (!needsUpdate.shouldUpdate) {
             this.logCallback(`✅ FRESH: ${needsUpdate.reason} - Skipping`);
-            localStorage.setItem(`sota_last_proc_${page.id}`, Date.now().toString());
+            localStorage.setItem(`sota_last_proc_${pageIdentifier}`, Date.now().toString());
             return;
         }
 
         this.logCallback(`⚡ UPDATE NEEDED: ${needsUpdate.reason}`);
 
         // 🔒 CRITICAL: Mark as processing IMMEDIATELY to prevent duplicate selection
-        localStorage.setItem(`sota_last_proc_${page.id}`, Date.now().toString());
+        localStorage.setItem(`sota_last_proc_${pageIdentifier}`, Date.now().toString());
         this.logCallback(`🔒 LOCKED: Page marked as processing to prevent duplicates`);
 
         // 1.5 ULTRA GOD MODE: AGGRESSIVE SHORTCODE & GARBAGE CLEANUP
@@ -891,7 +912,7 @@ export class MaintenanceEngine {
             const keywordResponse = await memoizedCallAI(
                 apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
                 'semantic_keyword_generator',
-                [page.title, geoTargeting.enabled ? geoTargeting.location : null],
+                [safeTitle, geoTargeting.enabled ? geoTargeting.location : null],
                 'json'
             );
 
@@ -922,7 +943,7 @@ export class MaintenanceEngine {
                 openrouterModels,
                 selectedGroqModel,
                 'god_mode_autonomous_agent',
-                [body.innerHTML, page.title, semanticKeywords, null],
+                [body.innerHTML, safeTitle, semanticKeywords, null],
                 'html'
             );
 
@@ -957,7 +978,7 @@ export class MaintenanceEngine {
         if (!hasSchema) {
             this.logCallback("🔧 ADDING: Schema markup for rich snippets...");
             const schemaMarkup = generateSchemaMarkup(
-                generateFullSchema(normalizeGeneratedContent({}, page.title), wpConfig, context.siteInfo)
+                generateFullSchema(normalizeGeneratedContent({}, safeTitle), wpConfig, context.siteInfo)
             );
             const schemaScript = doc.createElement('script');
             schemaScript.type = 'application/ld+json';
@@ -971,8 +992,8 @@ export class MaintenanceEngine {
         this.logCallback(`🎯 ANALYZING: SEO title & meta...`);
         let titleMetaUpdated = false;
 
-        const title = page.title.toLowerCase();
-        const needsTitleOptimization = !title.includes('2026') ||
+        const title = (page.title || '').toLowerCase();
+        const needsTitleOptimization = !title || !title.includes('2026') ||
             !['ultimate', 'complete', 'guide', 'best', 'top', 'proven'].some(w => title.includes(w));
 
         if (needsTitleOptimization) {
@@ -981,7 +1002,7 @@ export class MaintenanceEngine {
                 const titleMetaResponse = await memoizedCallAI(
                     apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
                     'optimize_title_meta',
-                    [page.title, body.innerHTML.substring(0, 1000), semanticKeywords.length > 0 ? semanticKeywords : [page.title]],
+                    [safeTitle, body.innerHTML.substring(0, 1000), semanticKeywords.length > 0 ? semanticKeywords : [safeTitle]],
                     'json'
                 );
 
@@ -1145,7 +1166,7 @@ export class MaintenanceEngine {
             this.logCallback(`🔍 SEARCHING: High-quality reference sources with Serper API...`);
             try {
                 // Search for authoritative sources (get more results to increase success rate)
-                const query = `${page.title} research study data statistics 2024 2025 expert guide -site:youtube.com -site:facebook.com -site:pinterest.com -site:twitter.com -site:reddit.com -site:instagram.com`;
+                const query = `${safeTitle} research study data statistics 2024 2025 expert guide -site:youtube.com -site:facebook.com -site:pinterest.com -site:twitter.com -site:reddit.com -site:instagram.com`;
                 this.logCallback(`🔍 QUERY: "${query.substring(0, 80)}..."`);
 
                 const response = await fetchWithProxies("https://google.serper.dev/search", {
@@ -1328,7 +1349,7 @@ export class MaintenanceEngine {
                 const altTextResponse = await memoizedCallAI(
                     apiClients, selectedModel, geoTargeting, openrouterModels, selectedGroqModel,
                     'optimize_image_alt_text',
-                    [imageDataForAI, page.title, page.title],
+                    [imageDataForAI, safeTitle, safeTitle],
                     'json'
                 );
 
@@ -1369,19 +1390,19 @@ export class MaintenanceEngine {
             this.logCallback(`✅ RESTORED: All images, videos, HTML preserved`);
 
 
-            const generatedContent = normalizeGeneratedContent({}, page.title);
+            const generatedContent = normalizeGeneratedContent({}, safeTitle);
             generatedContent.content = updatedHtml;
 
             // CRITICAL FIX: ALWAYS extract slug from URL to avoid race conditions
             let finalSlug = '';
-            if (page.id) {
+            if (pageIdentifier) {
                 try {
-                    const urlObj = new URL(page.id);
+                    const urlObj = new URL(pageIdentifier);
                     const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
                     finalSlug = pathParts[pathParts.length - 1];
-                    this.logCallback(`📍 Extracted slug from URL: "${finalSlug}" (URL: ${page.id})`);
+                    this.logCallback(`📍 Extracted slug from URL: "${finalSlug}" (URL: ${pageIdentifier})`);
                 } catch (e) {
-                    this.logCallback(`⚠️ Could not extract slug from URL: ${page.id}`);
+                    this.logCallback(`⚠️ Could not extract slug from URL: ${pageIdentifier}`);
                     // Fallback to page.slug only if URL extraction fails
                     finalSlug = page.slug || '';
                 }
@@ -1410,14 +1431,14 @@ export class MaintenanceEngine {
 
             const publishResult = await publishItemToWordPress(
                 {
-                    id: page.id,
+                    id: pageIdentifier,
                     title: generatedContent.title,
                     type: 'refresh',
                     status: 'generating',
                     statusText: 'Updating',
                     generatedContent,
                     crawledContent: null,
-                    originalUrl: page.id
+                    originalUrl: pageIdentifier
                 },
                 localStorage.getItem('wpPassword') || '', 'publish', fetchWordPressWithRetry, wpConfig
             );
@@ -1454,31 +1475,31 @@ export class MaintenanceEngine {
                 ].join('\n');
 
                 this.logCallback(qualityReport);
-                this.logCallback(`✅ GOD MODE SUCCESS|${generatedContent.title}|${publishResult.link || page.id}`);
-                localStorage.setItem(`sota_last_proc_${page.id}`, Date.now().toString());
-                localStorage.removeItem(`sota_fail_count_${page.id}`);
+                this.logCallback(`✅ GOD MODE SUCCESS|${generatedContent.title}|${publishResult.link || pageIdentifier}`);
+                localStorage.setItem(`sota_last_proc_${pageIdentifier}`, Date.now().toString());
+                localStorage.removeItem(`sota_fail_count_${pageIdentifier}`);
             } else {
                 this.logCallback(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
                 this.logCallback(`❌ PUBLISH FAILED: ${publishResult.message}`);
                 this.logCallback(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
-                const failKey = `sota_fail_count_${page.id}`;
+                const failKey = `sota_fail_count_${pageIdentifier}`;
                 const failCount = parseInt(localStorage.getItem(failKey) || '0') + 1;
                 localStorage.setItem(failKey, failCount.toString());
 
                 if (failCount >= 3) {
                     this.logCallback(`⚠️ SKIP: Failed ${failCount} times - Will retry after 24 hours`);
                     const skipUntil = Date.now() + (24 * 60 * 60 * 1000);
-                    localStorage.setItem(`sota_last_proc_${page.id}`, skipUntil.toString());
+                    localStorage.setItem(`sota_last_proc_${pageIdentifier}`, skipUntil.toString());
                 } else {
                     this.logCallback(`⚠️ RETRY: Attempt ${failCount}/3 - Next try in 30 mins`);
                     const skipFor30Mins = Date.now() + (30 * 60 * 1000);
-                    localStorage.setItem(`sota_last_proc_${page.id}`, skipFor30Mins.toString());
+                    localStorage.setItem(`sota_last_proc_${pageIdentifier}`, skipFor30Mins.toString());
                 }
             }
         } else {
             this.logCallback("✓ SKIP: Content already SOTA-optimized");
-            localStorage.setItem(`sota_last_proc_${page.id}`, Date.now().toString());
+            localStorage.setItem(`sota_last_proc_${pageIdentifier}`, Date.now().toString());
         }
     }
 

@@ -712,20 +712,29 @@ export class MaintenanceEngine {
         if (excludedUrls.length > 0 || excludedCategories.length > 0) {
             const initialCount = candidates.length;
             candidates = candidates.filter(p => {
-                if (excludedUrls.includes(p.url)) {
-                    this.logCallback(`🚫 Excluded (URL): ${p.title}`);
-                    return false;
+                for (const excludedUrl of excludedUrls) {
+                    if (p.url === excludedUrl || p.url.startsWith(excludedUrl)) {
+                        this.logCallback(`🚫 Excluded (URL Match): ${p.title} (matches: ${excludedUrl})`);
+                        return false;
+                    }
                 }
 
-                if (p.categories && excludedCategories.length > 0) {
-                    const pageCategories = Array.isArray(p.categories) ? p.categories : [];
-                    const hasExcludedCategory = pageCategories.some(cat =>
-                        excludedCategories.includes(cat) ||
-                        excludedCategories.includes(typeof cat === 'object' ? (cat as any).slug : cat)
-                    );
-                    if (hasExcludedCategory) {
-                        this.logCallback(`🚫 Excluded (Category): ${p.title}`);
+                for (const excludedPattern of excludedCategories) {
+                    if (p.url.startsWith(excludedPattern)) {
+                        this.logCallback(`🚫 Excluded (Category URL Match): ${p.title} (matches: ${excludedPattern})`);
                         return false;
+                    }
+
+                    if (p.categories) {
+                        const pageCategories = Array.isArray(p.categories) ? p.categories : [];
+                        const hasExcludedCategory = pageCategories.some(cat => {
+                            const catSlug = typeof cat === 'object' ? (cat as any).slug : cat;
+                            return catSlug === excludedPattern || excludedPattern.includes(catSlug);
+                        });
+                        if (hasExcludedCategory) {
+                            this.logCallback(`🚫 Excluded (Category Slug Match): ${p.title} (matches: ${excludedPattern})`);
+                            return false;
+                        }
                     }
                 }
 
@@ -1115,11 +1124,12 @@ export class MaintenanceEngine {
 
         this.logCallback(`📊 EXTERNAL LINKS: ${allExternalLinks.length} found in content`);
 
-        // Check for QUALITY references section (must have sota-references-section class with 5+ links)
+        // Check for QUALITY references section (must have sota-references-section class with 8+ links)
         const sotaReferenceSection = body.querySelector('.sota-references-section');
-        const hasQualityReferences = sotaReferenceSection && sotaReferenceSection.querySelectorAll('a[href^="http"]').length >= 5;
+        const referenceCount = sotaReferenceSection ? sotaReferenceSection.querySelectorAll('a[href^="http"]').length : 0;
+        const hasQualityReferences = sotaReferenceSection && referenceCount >= 8;
 
-        this.logCallback(`📚 QUALITY REFERENCES: ${hasQualityReferences ? '✅ Found SOTA reference section with 5+ links' : '❌ No quality reference section'}`);
+        this.logCallback(`📚 QUALITY REFERENCES: ${hasQualityReferences ? `✅ Found SOTA reference section with ${referenceCount} links (8-12 requirement met)` : `❌ No quality reference section (found ${referenceCount}/8 required)`}`);
         this.logCallback(`📚 SERPER API KEY: ${serperApiKey ? '✅ CONFIGURED' : '❌ NOT CONFIGURED'}`);
 
         // ULTRA STRICT: Force add if:
@@ -1168,7 +1178,7 @@ export class MaintenanceEngine {
                 ];
 
                 for (const link of potentialLinks) {
-                    if (validatedLinks.length >= 10) break;
+                    if (validatedLinks.length >= 12) break;
 
                     try {
                         if (!link.link) continue;
@@ -1227,7 +1237,7 @@ export class MaintenanceEngine {
                                             url: link.link,
                                             source: linkDomain
                                         });
-                                        this.logCallback(`✅ VALID (${checkResponse.status}) [${validatedLinks.length}/10]: ${linkDomain}`);
+                                        this.logCallback(`✅ VALID (${checkResponse.status}) [${validatedLinks.length}/12]: ${linkDomain}`);
                                         validationPassed = true;
                                     } else {
                                         this.logCallback(`❌ REJECTED [Status: ${checkResponse.status}]: ${linkDomain}`);
@@ -1251,7 +1261,7 @@ export class MaintenanceEngine {
                     }
 
                     // SOTA OPTIMIZATION: Reduced delay (HEAD requests are fast)
-                    if (validatedLinks.length < 10 && checkedCount % 3 === 0) {
+                    if (validatedLinks.length < 12 && checkedCount % 3 === 0) {
                         await delay(150);
                     }
                 }

@@ -1930,8 +1930,18 @@ Count existing internal links. IF fewer than 6:
   • Brief explanation for each source
   • IF post already has references: Verify all links work, add more if fewer than 8
 
-**STEP 11: OUTPUT**
-Return FULL OPTIMIZED HTML (no markdown, no explanations, pure HTML).
+**STEP 11: OUTPUT (CRITICAL - NEVER TRUNCATE)**
+🚨 **ABSOLUTELY CRITICAL - CONTENT COMPLETENESS REQUIREMENT:**
+- You MUST return the COMPLETE ENTIRE BLOG POST from beginning to end
+- NEVER TRUNCATE or shorten the content - output EVERYTHING
+- Include ALL sections: H1, intro, body paragraphs, key takeaways, FAQs, conclusion, AND references
+- If the input has 3000 words, your output should also have ~3000 words (or more with enhancements)
+- VERIFY you've included the References section at the very end (8-12 links)
+- **DO NOT summarize** - TRANSFORM AND OPTIMIZE while keeping full length
+- **DO NOT cut off** mid-paragraph or mid-section
+- The article must be COMPLETE and READY TO PUBLISH as-is
+
+Return FULL OPTIMIZED HTML (no markdown, no explanations, pure HTML - THE ENTIRE ARTICLE).
 
 🎯 **VISUAL SUPERNOVA QUALITY TARGETS (ALL MANDATORY - 100,000X BEAUTY + 1,000X QUALITY):**
 

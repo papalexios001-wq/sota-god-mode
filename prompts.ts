@@ -1800,15 +1800,37 @@ Before moving to Phase 4, verify the content now has:
 
 **IF ANY OF THESE ARE MISSING, ADD THEM NOW BEFORE PROCEEDING.**
 
-**PHASE 4: TRUST & AUTHORITY (FAQs & Conclusion)**
+**PHASE 4: TRUST & AUTHORITY (FAQs, Conclusion & MANDATORY REFERENCES)**
 *   **IF MISSING (FAQs):** Generate an FAQ section with 5-7 semantically relevant questions using expandable <details> format with light gray background, white cards, and styled summary elements.
 *   **IF PRESENT (FAQs):** Optimize existing questions for search intent. Ensure answers are 40-60 words, direct, and updated to ${TARGET_YEAR}.
 
 *   **IF MISSING (Conclusion):** Add a powerful "Conclusion" section (150-200 words) that recaps key points and provides clear next steps.
 *   **IF PRESENT (Conclusion):** Optimize it. Remove fluff. Add clear next steps if missing. Make it actionable.
 
-*   **IF MISSING (References):** Add a "References" section with 5-8 high-authority citations in ordered list format.
-*   **IF PRESENT (References):** Verify links are high-authority. Remove broken or low-quality sources. Add missing ones if needed.
+*   **REFERENCES SECTION (100% MANDATORY - NEVER SKIP THIS):**
+    - **ALWAYS ADD OR ENHANCE:** Every single blog post MUST have a References section
+    - **MINIMUM 8-12 HIGH-QUALITY LINKS:** Not 5, not 7, but 8-12 verified sources
+    - **200 STATUS ONLY:** Every link must be verified working (200 OK status)
+    - **NEVER 404:** Remove any broken or dead links immediately
+    - **HIGH AUTHORITY SOURCES:** Use .edu, .gov, major publications, industry leaders
+    - **HIGHLY RELEVANT:** Each link must directly support claims made in the article
+    - **CLICKABLE & HELPFUL:** Provide actual value to readers seeking deeper information
+    - **DIVERSE SOURCES:** Mix of academic, industry, news, and authoritative blogs
+    - **RECENT DATES:** Prefer 2024-2026 sources when available
+    - **FORMAT TEMPLATE:**
+      <h2>📚 References & Further Reading</h2>
+      <ol style="line-height: 2; padding-left: 1.5rem;">
+        <li><a href="[URL]" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none; font-weight: 600;">[Title or Description]</a> - [Brief explanation of what this source provides]</li>
+        <li><a href="[URL]" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: none; font-weight: 600;">[Title or Description]</a> - [Brief explanation]</li>
+        [... repeat for 8-12 total links ...]
+      </ol>
+    - **IF ALREADY HAS REFERENCES:**
+      1. Verify each link returns 200 status (remove all 404s)
+      2. If fewer than 8 references, ADD MORE to reach 8-12 total
+      3. If more than 12, keep only the highest quality ones
+      4. Ensure all are highly relevant and authoritative
+      5. Update formatting to match template above
+    - **QUALITY OVER QUANTITY:** Each reference must earn its place by providing genuine value
 
 **PHASE 5: MEDIA PRESERVATION (CRITICAL - NEVER VIOLATE THIS)**
 *   **YOU MUST PRESERVE ALL img, figure, video, iframe TAGS EXACTLY AS THEY ARE.**
@@ -1894,11 +1916,19 @@ Count existing internal links. IF fewer than 6:
 - Distribute naturally throughout content
 - NEVER use "click here" or generic phrases
 
-**STEP 10: INJECT MISSING SECTIONS**
+**STEP 10: INJECT MISSING SECTIONS (ALL MANDATORY)**
 - H1 Title (if missing): Add at very top
 - Key Takeaways (if missing): Add after intro with gradient box
 - FAQs (if missing): Add 5-7 questions in <details> format
 - Conclusion (if missing): Add 150-200 word actionable summary
+- **REFERENCES (ALWAYS MANDATORY - 100% REQUIRED):**
+  • EVERY post MUST have 8-12 verified references (200 status only)
+  • Remove all broken links (404s)
+  • High authority sources (.edu, .gov, major publications)
+  • Highly relevant and helpful to readers
+  • Use formatted template with clickable links
+  • Brief explanation for each source
+  • IF post already has references: Verify all links work, add more if fewer than 8
 
 **STEP 11: OUTPUT**
 Return FULL OPTIMIZED HTML (no markdown, no explanations, pure HTML).
@@ -1908,6 +1938,7 @@ Return FULL OPTIMIZED HTML (no markdown, no explanations, pure HTML).
 **CONTENT QUALITY (1,000X BETTER):**
 - H1 Title: ONE perfect title at top (55-65 chars, SEO/GEO/AEO optimized)
 - Internal Links: 6-12 high-quality links with contextual rich anchor text
+- **References: 8-12 verified high-authority sources (200 status only, NEVER 404)**
 - Entity mentions: 150+ per 1000 words (NOT 15, NOT 30 - ONE HUNDRED FIFTY+)
 - Sentence variance: 3-40 words with σ >50 (EXTREME human-like burstiness)
 - AI detection: <5% probability (95% AI defeat rate)
@@ -1916,6 +1947,7 @@ Return FULL OPTIMIZED HTML (no markdown, no explanations, pure HTML).
 - Information gain: 3+ sources per major claim
 - Completeness: 95%+ (covers all subtopics)
 - Accuracy: 98%+ (zero factual errors)
+- **Authority signals: References section present with 8-12 clickable, helpful, relevant links**
 
 **VISUAL BEAUTY (100,000X MORE STUNNING):**
 - Glassmorphism effects: 3-5 per post

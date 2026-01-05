@@ -11,6 +11,7 @@ import { callAI, generateContent, generateImageWithFallback, publishItemToWordPr
 import { 
     AppFooter, AnalysisModal, BulkPublishModal, ReviewModal, SidebarNav, SkeletonLoader, ApiKeyInput, CheckIcon, XIcon, WordPressEndpointInstructions
 } from './components';
+import { URLBatchOptimizer } from './url-batch-optimizer';
 import { 
     SitemapPage, ContentItem, GeneratedContent, SiteInfo, ExpandedGeoTargeting, ApiClients, WpConfig, NeuronConfig, GapAnalysisSuggestion, GenerationContext
 } from './types';

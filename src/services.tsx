@@ -23,6 +23,7 @@ import { getNeuronWriterAnalysis, formatNeuronDataForPrompt } from "./neuronwrit
 import { getGuaranteedYoutubeVideos, enforceWordCount, normalizeGeneratedContent, postProcessGeneratedHtml, performSurgicalUpdate, processInternalLinks, fetchWithProxies, smartCrawl, escapeRegExp } from "./contentUtils";
 import { Buffer } from 'buffer';
 import { generateFullSchema, generateSchemaMarkup } from "./schema-generator";
+import { detectCategory, generateReferenceHTML, REFERENCE_CATEGORIES } from './reference-engine';
 
 class SotaAIError extends Error {
     constructor(
